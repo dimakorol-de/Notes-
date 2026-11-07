@@ -1,37 +1,37 @@
 <template>
   <div class="container">
-    <!-- Поле ввода и системные кнопки -->
+    <!-- ЗОНА ВВОДА И СИСТЕМНЫХ ДЕЙСТВИЙ -->
     <div class="display-section">
-      <text class="input-viewer">{{ currentInput || "Начните ввод..." }}</text>
+      <text class="input-viewer">{{ currentInput || "Введите текст..." }}</text>
       <div class="actions-row">
         <input type="button" class="ctrl-btn btn-reset" value="Сброс" onclick="clearInput" />
         <input type="button" class="ctrl-btn btn-save" value="Сохранить" onclick="saveData" />
       </div>
     </div>
 
-    <!-- Сетка клавиатуры ЙЦУКЕН (Ограничена по ширине до 212px под Mi Band 10) -->
+    <!-- СЕТКА КЛАВИАТУРЫ ЙЦУКЕН (С использованием ваших .png ассетов) -->
     <div class="keyboard-grid">
       <block for="{{ row in ruLayout[activePage] }}">
         <div class="keyboard-row">
           <block for="{{ char in row }}">
             
-            <!-- Пробел (space.png) -->
+            <!-- Клавиша Пробела (space.png) -->
             <div if="{{ char === 'SPACE' }}" class="key-wrapper size-space" onclick="typeLetter(' ')">
               <image src="/components/keyboard-assets/space.png" class="key-img-bg" />
             </div>
 
-            <!-- Backspace (del.png) -->
+            <!-- Клавиша стирания Backspace (del.png) -->
             <div if="{{ char === 'DEL' }}" class="key-wrapper size-std" onclick="triggerBackspace">
               <image src="/components/keyboard-assets/del.png" class="key-img-bg" />
             </div>
 
-            <!-- Смена страницы 1/2 и 2/2 (pill-lang.png) -->
+            <!-- Клавиша перелистывания страниц клавиатуры (pill-lang.png) -->
             <div if="{{ char === 'PAGE' }}" class="key-wrapper size-std" onclick="changePage">
               <image src="/components/keyboard-assets/pill-lang.png" class="key-img-bg" />
               <text class="page-num-indicator">{{ activePage === 0 ? "1/2" : "2/2" }}</text>
             </div>
             
-            <!-- Обычная буква (123_boardless.png) -->
+            <!-- Обычная русская буква (123_boardless.png) -->
             <div else class="key-wrapper size-std" onclick="typeLetter(char)">
               <image src="/components/keyboard-assets/123_boardless.png" class="key-img-bg" />
               <text class="char-label">{{ char }}</text>
@@ -43,7 +43,7 @@
     </div>
 
     <!-- ПРОКРУЧИВАЕМЫЙ СПИСОК (ЗОНА ДЛЯ МОТАНИЯ ЗАМЕТОК) -->
-    <!-- Тег list активирует нативную вертикальную прокрутку на Mi Band 10 -->
+    <!-- Тег list включает плавный вертикальный скроллинг на Mi Band 10 -->
     <list class="notes-scroller">
       <list-item type="item-node" class="note-row-card" for="{{ (index, text) in notesDb }}">
         <text class="note-display-text">{{ text }}</text>
@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import storage from '@system.storage';
+import storage from '@system.storage'; // Импорт системного хранилища
 
 export default {
   private: {
@@ -66,7 +66,7 @@ export default {
     activePage: 0,    
     notesDb: [],      
 
-    // Русские буквы распределены по 5 штук в ряд для ширины экрана 212px
+    // Русские буквы распределены под ширину экрана Mi Band 10 (212px)
     ruLayout: [
       [
         ["Й", "Ц", "У", "К", "Е"],
@@ -114,7 +114,7 @@ export default {
     this.currentInput = ""; 
   },
 
-  // ФУНКЦИЯ УДАЛЕНИЯ ПО ИНДЕКСУ
+  // Функция удаления сохраненного текста из списка по индексу
   deleteNote(index) {
     this.notesDb.splice(index, 1); 
     this.saveNotes(); 
@@ -209,7 +209,7 @@ export default {
     font-weight: bold;
   }
 
-  /* Скроллинг сохраненных заметок */
+  /* Нативный скроллинг сохраненных записей под Mi Band 10 */
   .notes-scroller {
     width: 212px;
     height: 190px;

@@ -15,10 +15,12 @@ jobs:
       - name: Build root project
         run: |
           npm install
-          npx aiot build
+          npm run build
       - name: Upload RPK
         uses: actions/upload-artifact@v4
         with:
           name: rpk-build
-          path: dist/*.rpk
+          path: |
+            dist/*.rpk
+            build/*.rpk
           if-no-files-found: error

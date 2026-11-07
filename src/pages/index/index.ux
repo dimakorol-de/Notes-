@@ -1,0 +1,241 @@
+<template>
+  <div class="container">
+    <!-- Поле ввода и системные кнопки -->
+    <div class="display-section">
+      <text class="input-viewer">{{ currentInput || "Начните ввод..." }}</text>
+      <div class="actions-row">
+        <input type="button" class="ctrl-btn btn-reset" value="Сброс" onclick="clearInput" />
+        <input type="button" class="ctrl-btn btn-save" value="Сохранить" onclick="saveData" />
+      </div>
+    </div>
+
+    <!-- Сетка клавиатуры ЙЦУКЕН (Ограничена по ширине до 212px под Mi Band 10) -->
+    <div class="keyboard-grid">
+      <block for="{{ row in ruLayout[activePage] }}">
+        <div class="keyboard-row">
+          <block for="{{ char in row }}">
+            
+            <!-- Пробел (space.png) -->
+            <div if="{{ char === 'SPACE' }}" class="key-wrapper size-space" onclick="typeLetter(' ')">
+              <image src="/components/keyboard-assets/space.png" class="key-img-bg" />
+            </div>
+
+            <!-- Backspace (del.png) -->
+            <div if="{{ char === 'DEL' }}" class="key-wrapper size-std" onclick="triggerBackspace">
+              <image src="/components/keyboard-assets/del.png" class="key-img-bg" />
+            </div>
+
+            <!-- Смена страницы 1/2 и 2/2 (pill-lang.png) -->
+            <div if="{{ char === 'PAGE' }}" class="key-wrapper size-std" onclick="changePage">
+              <image src="/components/keyboard-assets/pill-lang.png" class="key-img-bg" />
+              <text class="page-num-indicator">{{ activePage === 0 ? "1/2" : "2/2" }}</text>
+            </div>
+            
+            <!-- Обычная буква (123_boardless.png) -->
+            <div else class="key-wrapper size-std" onclick="typeLetter(char)">
+              <image src="/components/keyboard-assets/123_boardless.png" class="key-img-bg" />
+              <text class="char-label">{{ char }}</text>
+            </div>
+
+          </block>
+        </div>
+      </block>
+    </div>
+
+    <!-- ПРОКРУЧИВАЕМЫЙ СПИСОК (ЗОНА ДЛЯ МОТАНИЯ ЗАМЕТОК) -->
+    <!-- Тег list активирует нативную вертикальную прокрутку на Mi Band 10 -->
+    <list class="notes-scroller">
+      <list-item type="item-node" class="note-row-card" for="{{ (index, text) in notesDb }}">
+        <text class="note-display-text">{{ text }}</text>
+        
+        <!-- Кнопка удаления записи (Использует иконку h-del.png из ваших ассетов) -->
+        <div class="delete-icon-box" onclick="deleteNote(index)">
+          <image src="/components/keyboard-assets/h-del.png" class="delete-icon-img" />
+        </div>
+      </list-item>
+    </list>
+  </div>
+</template>
+
+<script>
+import storage from '@system.storage';
+
+export default {
+  private: {
+    currentInput: "", 
+    activePage: 0,    
+    notesDb: [],      
+
+    // Русские буквы распределены по 5 штук в ряд для ширины экрана 212px
+    ruLayout: [
+      [
+        ["Й", "Ц", "У", "К", "Е"],
+        ["Н", "Г", "Ш", "Щ", "З"],
+        ["Ф", "Ы", "В", "А", "П"],
+        ["PAGE", "SPACE", "DEL"]
+      ],
+      [
+        ["Р", "О", "Л", "Д", "Ж"],
+        ["Э", "Х", "Ъ", "Я", "Ч"],
+        ["С", "М", "И", "Т", "Ь"],
+        ["Б", "Ю", "Ё", ".", "DEL"]
+      ]
+    ]
+  },
+
+  onInit() {
+    this.loadNotes();
+  },
+
+  typeLetter(char) {
+    this.currentInput += char;
+  },
+
+  triggerBackspace() {
+    if (this.currentInput.length > 0) {
+      this.currentInput = this.currentInput.slice(0, -1);
+    }
+  },
+
+  clearInput() {
+    this.currentInput = "";
+  },
+
+  changePage() {
+    this.activePage = this.activePage === 0 ? 1 : 0;
+  },
+
+  saveData() {
+    const textValue = this.currentInput.trim();
+    if (!textValue) return;
+
+    this.notesDb.push(textValue);
+    this.saveNotes();
+    this.currentInput = ""; 
+  },
+
+  // ФУНКЦИЯ УДАЛЕНИЯ ПО ИНДЕКСУ
+  deleteNote(index) {
+    this.notesDb.splice(index, 1); 
+    this.saveNotes(); 
+  },
+
+  loadNotes() {
+    const self = this;
+    storage.get({
+      key: 'user_saved_notes_data',
+      success: function(data) {
+        if (data) {
+          self.notesDb = JSON.parse(data);
+        }
+      }
+    });
+  },
+
+  saveNotes() {
+    storage.set({
+      key: 'user_saved_notes_data',
+      value: JSON.stringify(this.notesDb)
+    });
+  }
+}
+</script>
+
+<style>
+  .container {
+    flex-direction: column;
+    background-color: #000000;
+    width: 212px;
+    height: 100%;
+  }
+  .display-section {
+    flex-direction: column;
+    padding: 6px;
+    background-color: #080808;
+    width: 212px;
+  }
+  .input-viewer {
+    color: #ffffff;
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .actions-row {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .ctrl-btn {
+    width: 95px;
+    height: 28px;
+    font-size: 13px;
+    color: #ffffff;
+    border-radius: 5px;
+  }
+  .btn-reset { background-color: #a81515; }
+  .btn-save { background-color: #15822e; }
+
+  /* Клавиатура */
+  .keyboard-grid {
+    flex-direction: column;
+    padding: 2px;
+    width: 212px;
+  }
+  .keyboard-row {
+    justify-content: center;
+    margin-bottom: 2px;
+  }
+  .key-wrapper {
+    justify-content: center;
+    align-items: center;
+    margin: 1px;
+    position: relative;
+  }
+  .size-std { width: 38px; height: 38px; }
+  .size-space { width: 80px; height: 38px; }
+
+  .key-img-bg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+  }
+  .char-label {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .page-num-indicator {
+    color: #007aff;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  /* Скроллинг сохраненных заметок */
+  .notes-scroller {
+    width: 212px;
+    height: 190px;
+    margin-top: 4px;
+  }
+  .note-row-card {
+    width: 212px;
+    padding: 8px;
+    background-color: #111111;
+    border-bottom: 1px solid #1f1f1f;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .note-display-text {
+    color: #e0e0e0;
+    font-size: 15px;
+    flex: 1;
+  }
+  .delete-icon-box {
+    width: 24px;
+    height: 24px;
+    justify-content: center;
+    align-items: center;
+  }
+  .delete-icon-img {
+    width: 20px;
+    height: 20px;
+  }
+</style>

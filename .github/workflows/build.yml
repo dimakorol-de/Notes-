@@ -15,7 +15,7 @@ jobs:
       - name: Build root project
         run: |
           npm install
-          npm run build
+          ./node_modules/.bin/aiot build
       - name: Upload RPK
         uses: actions/upload-artifact@v4
         with:

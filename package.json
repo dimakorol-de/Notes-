@@ -1,12 +1,22 @@
 {
-  "name": "russian-keyboard-app",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "aiot build",
-    "release": "aiot release"
+  "package": "com.trcatlover.ruskeyboard",
+  "name": "Русская Клавиатура",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minPlatformVersion": 1000,
+  "icon": "/common/logo.png",
+  "deviceTypeList": ["band", "watch"],
+  "features": [
+    { "name": "system.storage" }
+  ],
+  "config": {
+    "logLevel": "log",
+    "designWidth": 212
   },
-  "devDependencies": {
-    "aiot-toolkit": "latest"
+  "router": {
+    "entry": "pages/index",
+    "pages": {
+      "pages/index": { "component": "index" }
+    }
   }
 }
